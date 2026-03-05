@@ -74,7 +74,9 @@ st.dataframe(input_df, hide_index=True)
 if st.button("🚀 Evaluar Solicitud"):
     # Realizar la predicción usando el Pipeline completo
     prediction = model.predict(input_df)
-    probability = model.predict_proba(input_df)[0][1]
+    
+    # CAMBIO APLICADO: Forzamos el tipo float para evitar el error de StreamlitAPIException
+    probability = float(model.predict_proba(input_df)[0][1])
 
     st.divider()
     
@@ -92,7 +94,7 @@ if st.button("🚀 Evaluar Solicitud"):
         st.write("### Probabilidad de Mora:")
         st.metric(label="Riesgo", value=f"{probability:.2%}")
         
-    # Explicación visual del riesgo
+    # Explicación visual del riesgo (Ahora recibe un float nativo de Python)
     st.progress(probability)
     
     if probability > 0.5:

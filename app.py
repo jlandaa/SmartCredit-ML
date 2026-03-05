@@ -45,9 +45,18 @@ def get_user_inputs():
     loan_amount = st.sidebar.number_input("Monto del Préstamo", min_value=0, value=10000)
     loan_int_rate = st.sidebar.slider("Tasa de Interés (%)", 0.0, 25.0, 11.0)
     
-    # Motivo del préstamo (Debe coincidir con las categorías del entrenamiento)
-    loan_intent = st.sidebar.selectbox("Motivo del Préstamo", 
-        ['EDUCATION', 'MEDICAL', 'VENTURE', 'PERSONAL', 'HOMEIMPROVEMENT', 'DEBTCONSOLIDATION'])
+    # --- Traducción Inglés-Español ---
+    traduccion_motivos = {
+        'Educación': 'EDUCATION',
+        'Gastos Médicos': 'MEDICAL',
+        'Emprendimiento (Venture)': 'VENTURE',
+        'Uso Personal': 'PERSONAL',
+        'Mejoras del Hogar': 'HOMEIMPROVEMENT',
+        'Consolidación de Deudas': 'DEBTCONSOLIDATION'
+    }
+    motivo_espanol = st.sidebar.selectbox("Motivo del Préstamo", list(traduccion_motivos.keys()))
+    loan_intent = traduccion_motivos[motivo_espanol]
+    # ----------------------------
     
     # Cálculo de feature derivada (loan_percent_income)
     percent_income = loan_amount / income if income > 0 else 0
@@ -60,7 +69,7 @@ def get_user_inputs():
         'loan_amnt': loan_amount,
         'loan_int_rate': loan_int_rate,
         'loan_percent_income': percent_income,
-        'loan_intent': loan_intent
+        'loan_intent': loan_intent # Aquí se envía en inglés al modelo
     }
     return pd.DataFrame([data])
 

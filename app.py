@@ -92,7 +92,20 @@ df_vista.columns = [
     "Motivo del Préstamo"
 ]
 
-# Mostramos la copia traducida, ocultando el índice
+# Diccionario inverso para traducir el valor de la celda al español
+traduccion_inversa = {
+    'EDUCATION': 'Educación',
+    'MEDICAL': 'Gastos Médicos',
+    'VENTURE': 'Emprendimiento (Venture)',
+    'PERSONAL': 'Uso Personal',
+    'HOMEIMPROVEMENT': 'Mejoras del Hogar',
+    'DEBTCONSOLIDATION': 'Consolidación de Deudas'
+}
+
+# Aplicamos la traducción solo a esa columna en nuestra copia visual
+df_vista["Motivo del Préstamo"] = df_vista["Motivo del Préstamo"].map(traduccion_inversa)
+
+# Mostramos la copia 100% en español, ocultando el índice
 st.dataframe(df_vista, hide_index=True)
 
 # 6. Predicción

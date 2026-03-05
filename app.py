@@ -77,7 +77,23 @@ input_df = get_user_inputs()
 
 # 5. Visualización de los datos ingresados
 st.write("### Resumen del Perfil")
-st.dataframe(input_df, hide_index=True)
+
+# Creamos una copia exclusiva para la interfaz visual
+df_vista = input_df.copy()
+
+# Renombramos las columnas al español de forma amigable
+df_vista.columns = [
+    "Edad", 
+    "Ingreso Anual (USD)", 
+    "Antigüedad Laboral", 
+    "Monto del Préstamo", 
+    "Tasa de Interés (%)", 
+    "% del Ingreso", 
+    "Motivo del Préstamo"
+]
+
+# Mostramos la copia traducida, ocultando el índice
+st.dataframe(df_vista, hide_index=True)
 
 # 6. Predicción
 if st.button("🚀 Evaluar Solicitud"):

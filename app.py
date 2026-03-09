@@ -36,23 +36,20 @@ st.divider()
 st.sidebar.header("📊 Datos del Solicitante")
 
 def get_user_inputs():
-    # 1. Capturamos la edad primero
+    # Datos personales
     age = st.sidebar.slider("Edad", 18, 90, 30)
-    income = st.sidebar.number_input("Ingreso Anual (USD)", min_value=0, value=50000)
     
-    # 2. Calculamos la antigüedad laboral máxima lógica (Edad - 16)
-    # Usamos max(0, ...) para evitar números negativos si el usuario tiene menos de 16
+    # Ingreso anual con un mínimo lógico
+    income = st.sidebar.number_input("Ingreso Anual (USD)", min_value=1000, value=50000, step=1000)
+    
+    # Validación dinámica: La antigüedad máxima es la edad actual menos 16 años (edad legal base)
     max_antiguedad = max(0, age - 16)
-    
-    # Aseguramos que el valor por defecto (5) no sea mayor al máximo permitido
-    valor_defecto_antiguedad = min(5, max_antiguedad)
-    
-    # 3. El slider ahora tiene un límite superior dinámico
+    valor_defecto_antiguedad = min(5, max_antiguedad) # Evita errores si el usuario baja mucho la edad
     emp_length = st.sidebar.slider("Antigüedad Laboral (años)", 0, max_antiguedad, valor_defecto_antiguedad)
     
-    # Datos del préstamo
-    loan_amount = st.sidebar.number_input("Monto del Préstamo", min_value=0, value=10000)
-    loan_int_rate = st.sidebar.slider("Tasa de Interés (%)", 0.0, 25.0, 11.0)
+    # Datos del préstamo con límites financieros reales
+    loan_amount = st.sidebar.number_input("Monto del Préstamo (USD)", min_value=500, value=10000, step=500)
+    loan_int_rate = st.sidebar.slider("Tasa de Interés (%)", 1.0, 25.0, 11.0, step=0.1)
     
     # --- Traducción Inglés-Español ---
     traduccion_motivos = {
@@ -133,7 +130,6 @@ if st.button("🚀 Evaluar Solicitud"):
         st.write("### Resultado:")
         if prediction[0] == 0:
             st.success("✅ CRÉDITO APROBADO")
-            # --- LÍNEA ELIMINADA PARA MANTENER UN TONO SOBRIO ---
         else:
             st.error("⚠️ RIESGO DE DEFAULT")
 
@@ -149,7 +145,7 @@ if st.button("🚀 Evaluar Solicitud"):
     else:
         st.info("El solicitante presenta un perfil compatible con las políticas de aprobación.")
 
-    # EXPLICABILIDAD DEL MODELO ---
+    # --- NUEVO BLOQUE: EXPLICABILIDAD DEL MODELO ---
     st.divider()
     
     # Usamos un expander para no saturar la vista principal

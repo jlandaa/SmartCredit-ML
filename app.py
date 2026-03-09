@@ -140,6 +140,34 @@ if st.button("🚀 Evaluar Solicitud"):
     else:
         st.info("El solicitante presenta un perfil compatible con las políticas de aprobación.")
 
+    # --- NUEVO BLOQUE: EXPLICABILIDAD DEL MODELO ---
+    st.divider()
+    
+    # Usamos un expander para no saturar la vista principal
+    with st.expander("🔍 Ver análisis de decisión del algoritmo"):
+        st.write("¿Qué factores tuvieron más peso para esta predicción?")
+        
+        # 1. Extraemos el modelo y el preprocesador del Pipeline
+        xgb_model = model.named_steps['classifier']
+        preprocessor = model.named_steps['preprocessor']
+        
+        # 2. Obtenemos las importancias y los nombres de las variables transformadas
+        importances = xgb_model.feature_importances_
+        feature_names = preprocessor.get_feature_names_out()
+        
+        # 3. Limpiamos los nombres (Scikit-learn les agrega prefijos como 'num__' o 'cat__')
+        clean_names = [name.split('__')[-1] for name in feature_names]
+        
+        # 4. Creamos un DataFrame para graficar
+        df_importances = pd.DataFrame({'Importancia': importances}, index=clean_names)
+        
+        # Ordenamos y tomamos el Top 5 para que el gráfico sea claro
+        df_top5 = df_importances.sort_values(by='Importancia', ascending=False).head(5)
+        
+        # 5. Graficamos usando el componente nativo de Streamlit
+        st.bar_chart(df_top5)
+        st.caption("El gráfico muestra las 5 variables más determinantes que el modelo XGBoost evaluó para este solicitante en particular.")
+
 # Pie de página profesional
 st.sidebar.markdown("---")
-st.sidebar.info(f"Desarrollado por Juan Manuel Landa\nIngeniero en Computación")
+st.sidebar.info("Desarrollado por Juan Manuel Landa\nIngeniero en Computación")

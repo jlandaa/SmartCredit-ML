@@ -36,7 +36,6 @@ st.divider()
 st.sidebar.header("📊 Datos del Solicitante")
 
 def get_user_inputs():
-    def get_user_inputs():
     # 1. Capturamos la edad primero
     age = st.sidebar.slider("Edad", 18, 90, 30)
     income = st.sidebar.number_input("Ingreso Anual (USD)", min_value=0, value=50000)

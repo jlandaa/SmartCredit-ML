@@ -36,10 +36,20 @@ st.divider()
 st.sidebar.header("📊 Datos del Solicitante")
 
 def get_user_inputs():
-    # Datos personales
+    def get_user_inputs():
+    # 1. Capturamos la edad primero
     age = st.sidebar.slider("Edad", 18, 90, 30)
     income = st.sidebar.number_input("Ingreso Anual (USD)", min_value=0, value=50000)
-    emp_length = st.sidebar.slider("Antigüedad Laboral (años)", 0, 50, 5)
+    
+    # 2. Calculamos la antigüedad laboral máxima lógica (Edad - 16)
+    # Usamos max(0, ...) para evitar números negativos si el usuario tiene menos de 16
+    max_antiguedad = max(0, age - 16)
+    
+    # Aseguramos que el valor por defecto (5) no sea mayor al máximo permitido
+    valor_defecto_antiguedad = min(5, max_antiguedad)
+    
+    # 3. El slider ahora tiene un límite superior dinámico
+    emp_length = st.sidebar.slider("Antigüedad Laboral (años)", 0, max_antiguedad, valor_defecto_antiguedad)
     
     # Datos del préstamo
     loan_amount = st.sidebar.number_input("Monto del Préstamo", min_value=0, value=10000)

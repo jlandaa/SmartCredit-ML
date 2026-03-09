@@ -124,7 +124,7 @@ if st.button("🚀 Evaluar Solicitud"):
         st.write("### Resultado:")
         if prediction[0] == 0:
             st.success("✅ CRÉDITO APROBADO")
-            st.balloons()
+            # --- LÍNEA ELIMINADA PARA MANTENER UN TONO SOBRIO ---
         else:
             st.error("⚠️ RIESGO DE DEFAULT")
 
@@ -140,7 +140,7 @@ if st.button("🚀 Evaluar Solicitud"):
     else:
         st.info("El solicitante presenta un perfil compatible con las políticas de aprobación.")
 
-    # --- NUEVO BLOQUE: EXPLICABILIDAD DEL MODELO ---
+    # EXPLICABILIDAD DEL MODELO ---
     st.divider()
     
     # Usamos un expander para no saturar la vista principal

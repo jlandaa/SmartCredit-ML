@@ -39,16 +39,21 @@ def get_user_inputs():
     # Datos personales
     age = st.sidebar.slider("Edad", 18, 90, 30)
     
-    # Ingreso anual con un mínimo lógico
-    income = st.sidebar.number_input("Ingreso Anual (USD)", min_value=1000, value=50000, step=1000)
+    # Ingreso anual con un mínimo lógico y un TOPE MÁXIMO (Evita números absurdos)
+    income = st.sidebar.number_input("Ingreso Anual (USD)", min_value=1000, max_value=5000000, value=50000, step=1000)
     
-    # Validación dinámica: La antigüedad máxima es la edad actual menos 16 años (edad legal base)
+    # Validación dinámica 1: Antigüedad laboral
     max_antiguedad = max(0, age - 16)
-    valor_defecto_antiguedad = min(5, max_antiguedad) # Evita errores si el usuario baja mucho la edad
+    valor_defecto_antiguedad = min(5, max_antiguedad) 
     emp_length = st.sidebar.slider("Antigüedad Laboral (años)", 0, max_antiguedad, valor_defecto_antiguedad)
     
-    # Datos del préstamo con límites financieros reales
-    loan_amount = st.sidebar.number_input("Monto del Préstamo (USD)", min_value=500, value=10000, step=500)
+    # Validación dinámica 2: Capacidad de Endeudamiento
+    # Un banco estándar rara vez presta más de 5 veces el ingreso anual en créditos personales
+    max_prestamo = max(500, int(income * 5))
+    valor_defecto_prestamo = min(10000, max_prestamo) # Evita que el valor por defecto rompa la app si el usuario baja mucho el ingreso
+    
+    # Datos del préstamo ajustados dinámicamente
+    loan_amount = st.sidebar.number_input("Monto del Préstamo (USD)", min_value=500, max_value=max_prestamo, value=valor_defecto_prestamo, step=500)
     loan_int_rate = st.sidebar.slider("Tasa de Interés (%)", 1.0, 25.0, 11.0, step=0.1)
     
     # --- Traducción Inglés-Español ---
@@ -75,7 +80,7 @@ def get_user_inputs():
         'loan_amnt': loan_amount,
         'loan_int_rate': loan_int_rate,
         'loan_percent_income': percent_income,
-        'loan_intent': loan_intent # Aquí se envía en inglés al modelo
+        'loan_intent': loan_intent 
     }
     return pd.DataFrame([data])
 

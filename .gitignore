@@ -1,0 +1,5 @@
+# Ignorar secretos de Streamlit
+.streamlit/
+
+# Ignorar claves JSON sueltas
+*.json

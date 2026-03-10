@@ -226,3 +226,26 @@ if st.button("🚀 Evaluar Solicitud"):
 # Pie de página profesional
 st.sidebar.markdown("---")
 st.sidebar.info("Desarrollado por Juan Manuel Landa\nIngeniero en Computación")
+
+
+st.sidebar.divider()
+# Creamos un switch en la barra lateral
+if st.sidebar.checkbox("🔧 Ver Base de Datos (Modo Admin)"):
+    st.subheader("🗄️ Historial de Evaluaciones Guardadas")
+    try:
+        # Leemos la base de datos directamente
+        df_historial = pd.read_sql_table('historial_predicciones', con=engine)
+        st.write(f"**Total de evaluaciones registradas:** {len(df_historial)}")
+        
+        # Mostramos la tabla interactiva
+        st.dataframe(df_historial)
+        
+        # Un botón extra por si quieres descargarla a Excel/CSV
+        st.download_button(
+            label="Descargar datos en CSV",
+            data=df_historial.to_csv(index=False).encode('utf-8'),
+            file_name='historial_riesgo.csv',
+            mime='text/csv',
+        )
+    except ValueError:
+        st.warning("La base de datos aún no tiene registros. Realiza una evaluación primero.")

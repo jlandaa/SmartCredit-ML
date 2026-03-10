@@ -130,6 +130,17 @@ st.dataframe(df_vista, hide_index=True)
 
 # 6. Predicción
 if st.button("🚀 Evaluar Solicitud"):
+    
+    # --- 1. VALIDACIÓN LÓGICA DE OUTLIERS ---
+    edad_ingresada = input_df['person_age'].iloc[0]
+    antiguedad_ingresada = input_df['person_emp_length'].iloc[0]
+    
+    # Asumimos que nadie empieza a trabajar formalmente antes de los 16 años
+    if antiguedad_ingresada > (edad_ingresada - 16):
+        st.error(f"⚠️ Error de validación: Es imposible tener {antiguedad_ingresada} años de antigüedad con {edad_ingresada} años de edad. Verifica los datos.")
+        st.stop() # Frena la ejecución, no predice ni guarda el dato erróneo
+    # ----------------------------------------
+
     # Realizar la predicción usando el Pipeline completo
     prediction = model.predict(input_df)
     
@@ -144,8 +155,10 @@ if st.button("🚀 Evaluar Solicitud"):
         st.write("### Resultado:")
         if prediction[0] == 0:
             st.success("✅ CRÉDITO APROBADO")
+            decision_texto = "Aprobado"
         else:
             st.error("⚠️ RIESGO DE DEFAULT")
+            decision_texto = "Rechazado"
 
     with col2:
         st.write("### Probabilidad de Mora:")
@@ -159,7 +172,30 @@ if st.button("🚀 Evaluar Solicitud"):
     else:
         st.info("El solicitante presenta un perfil compatible con las políticas de aprobación.")
 
-    # --- NUEVO BLOQUE: EXPLICABILIDAD DEL MODELO ---
+    # --- 2. GUARDADO EN BASE DE DATOS (PARA LOOKER) ---
+    nuevo_registro = {
+        "fecha_evaluacion": datetime.now(),
+        "edad": int(edad_ingresada),
+        "ingreso_anual": float(input_df['person_income'].iloc[0]),
+        "antiguedad_laboral": int(antiguedad_ingresada),
+        "monto_prestamo": float(input_df['loan_amnt'].iloc[0]),
+        "tasa_interes": float(input_df['loan_int_rate'].iloc[0]),
+        "motivo": input_df['loan_intent'].iloc[0],
+        "probabilidad_default": probability,
+        "decision_final": decision_texto
+    }
+    
+    try:
+        # Creamos un dataframe temporal de 1 fila para inyectarlo en SQL
+        df_log = pd.DataFrame([nuevo_registro])
+        df_log.to_sql('historial_predicciones', con=engine, if_exists='append', index=False)
+        # Notificación sutil y profesional
+        st.toast('Registro almacenado correctamente para análisis de cartera.', icon='💾')
+    except Exception as e:
+        st.sidebar.warning(f"Error al guardar registro en la BD: {e}")
+    # --------------------------------------------------
+
+    # EXPLICABILIDAD DEL MODELO ---
     st.divider()
     
     # Usamos un expander para no saturar la vista principal

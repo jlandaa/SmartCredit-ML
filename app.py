@@ -2,9 +2,9 @@ import streamlit as st
 import joblib
 import pandas as pd
 import numpy as np
-# --- NUEVAS LIBRERÍAS ---
-from sqlalchemy import create_engine, text
+import json
 from datetime import datetime
+from google.oauth2 import service_account
 
 # 1. Configuración de la página y Estilo
 st.set_page_config(
@@ -13,11 +13,16 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- CONFIGURACIÓN DE BASE DE DATOS ---
-# Usamos SQLite para pruebas locales. Crea un archivo .db en tu carpeta.
-DB_URL = "sqlite:///historial_evaluaciones.db" 
-engine = create_engine(DB_URL)
-# --------------------------------------
+# --- CONFIGURACIÓN DE BIGQUERY ---
+# Cargamos las credenciales desde los secretos de Streamlit
+creds_dict = json.loads(st.secrets["gcp_service_account_json"])
+creds = service_account.Credentials.from_service_account_info(creds_dict)
+
+PROJECT_ID = creds_dict["project_id"]
+DATASET_ID = "riesgo_crediticio"
+TABLE_ID = "historial_predicciones"
+FULL_TABLE_ID = f"{DATASET_ID}.{TABLE_ID}"
+# ---------------------------------
 
 # 2. Función para cargar el modelo (Cacheada para optimizar rendimiento)
 @st.cache_resource

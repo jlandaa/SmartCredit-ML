@@ -62,9 +62,8 @@ def get_user_inputs():
     emp_length = st.sidebar.slider("Antigüedad Laboral (años)", 0, max_antiguedad, valor_defecto_antiguedad)
     
     # Validación dinámica 2: Capacidad de Endeudamiento
-    # Un banco estándar rara vez presta más de 5 veces el ingreso anual en créditos personales
     max_prestamo = max(500, int(income * 5))
-    valor_defecto_prestamo = min(10000, max_prestamo) # Evita que el valor por defecto rompa la app si el usuario baja mucho el ingreso
+    valor_defecto_prestamo = min(10000, max_prestamo) 
     
     # Datos del préstamo ajustados dinámicamente
     loan_amount = st.sidebar.number_input("Monto del Préstamo (USD)", min_value=500, max_value=max_prestamo, value=valor_defecto_prestamo, step=500)
@@ -140,16 +139,14 @@ if st.button("🚀 Evaluar Solicitud"):
     edad_ingresada = input_df['person_age'].iloc[0]
     antiguedad_ingresada = input_df['person_emp_length'].iloc[0]
     
-    # Asumimos que nadie empieza a trabajar formalmente antes de los 16 años
     if antiguedad_ingresada > (edad_ingresada - 16):
         st.error(f"⚠️ Error de validación: Es imposible tener {antiguedad_ingresada} años de antigüedad con {edad_ingresada} años de edad. Verifica los datos.")
-        st.stop() # Frena la ejecución, no predice ni guarda el dato erróneo
+        st.stop() 
     # ----------------------------------------
 
     # Realizar la predicción usando el Pipeline completo
     prediction = model.predict(input_df)
     
-    # CAMBIO APLICADO: Forzamos el tipo float para evitar el error de StreamlitAPIException
     probability = float(model.predict_proba(input_df)[0][1])
 
     st.divider()
@@ -169,7 +166,6 @@ if st.button("🚀 Evaluar Solicitud"):
         st.write("### Probabilidad de Mora:")
         st.metric(label="Riesgo", value=f"{probability:.2%}")
         
-    # Explicación visual del riesgo (Ahora recibe un float nativo de Python)
     st.progress(probability)
     
     if probability > 0.5:
@@ -191,40 +187,37 @@ if st.button("🚀 Evaluar Solicitud"):
     }
     
     try:
-        # Creamos un dataframe temporal de 1 fila para inyectarlo en SQL
+        # AQUÍ ESTÁ EL CAMBIO: Usamos to_gbq en lugar de to_sql
         df_log = pd.DataFrame([nuevo_registro])
-        df_log.to_sql('historial_predicciones', con=engine, if_exists='append', index=False)
-        # Notificación sutil y profesional
-        st.toast('Registro almacenado correctamente para análisis de cartera.', icon='💾')
+        df_log.to_gbq(
+            destination_table=FULL_TABLE_ID, 
+            project_id=PROJECT_ID, 
+            credentials=creds, 
+            if_exists='append'
+        )
+        st.toast('Registro almacenado en BigQuery para análisis en Looker.', icon='☁️')
     except Exception as e:
-        st.sidebar.warning(f"Error al guardar registro en la BD: {e}")
+        st.sidebar.error(f"Error al guardar en la nube: {e}")
     # --------------------------------------------------
 
     # EXPLICABILIDAD DEL MODELO ---
     st.divider()
     
-    # Usamos un expander para no saturar la vista principal
     with st.expander("🔍 Ver análisis de decisión del algoritmo"):
         st.write("¿Qué factores tuvieron más peso para esta predicción?")
         
-        # 1. Extraemos el modelo y el preprocesador del Pipeline
         xgb_model = model.named_steps['classifier']
         preprocessor = model.named_steps['preprocessor']
         
-        # 2. Obtenemos las importancias y los nombres de las variables transformadas
         importances = xgb_model.feature_importances_
         feature_names = preprocessor.get_feature_names_out()
         
-        # 3. Limpiamos los nombres (Scikit-learn les agrega prefijos como 'num__' o 'cat__')
         clean_names = [name.split('__')[-1] for name in feature_names]
         
-        # 4. Creamos un DataFrame para graficar
         df_importances = pd.DataFrame({'Importancia': importances}, index=clean_names)
         
-        # Ordenamos y tomamos el Top 5 para que el gráfico sea claro
         df_top5 = df_importances.sort_values(by='Importancia', ascending=False).head(5)
         
-        # 5. Graficamos usando el componente nativo de Streamlit
         st.bar_chart(df_top5)
         st.caption("El gráfico muestra las 5 variables más determinantes que el modelo XGBoost evaluó para este solicitante en particular.")
 
@@ -236,36 +229,36 @@ st.sidebar.info("Desarrollado por Juan Manuel Landa\nIngeniero en Computación")
 # --- PANEL DE ADMINISTRACIÓN ---
 st.sidebar.divider()
 if st.sidebar.checkbox("🔧 Ver Base de Datos (Modo Admin)"):
-    st.subheader("🗄️ Historial de Evaluaciones Guardadas")
+    st.subheader("☁️ Historial en Google BigQuery")
     try:
-        # Leemos la base de datos directamente
-        df_historial = pd.read_sql_table('historial_predicciones', con=engine)
-        st.write(f"**Total de evaluaciones registradas:** {len(df_historial)}")
+        # Leemos la base de datos desde la nube
+        query = f"SELECT * FROM `{PROJECT_ID}.{FULL_TABLE_ID}` ORDER BY fecha_evaluacion DESC"
+        df_historial = pd.read_gbq(query, project_id=PROJECT_ID, credentials=creds)
         
-        # Mostramos la tabla interactiva
+        st.write(f"**Total de evaluaciones registradas:** {len(df_historial)}")
         st.dataframe(df_historial)
         
-        # Un botón extra por si quieres descargarla a Excel/CSV
         st.download_button(
             label="Descargar datos en CSV",
             data=df_historial.to_csv(index=False).encode('utf-8'),
-            file_name='historial_riesgo.csv',
+            file_name='historial_riesgo_bq.csv',
             mime='text/csv',
         )
-    except ValueError:
-        st.warning("La base de datos aún no tiene registros. Realiza una evaluación primero.")
+    except Exception as e:
+        st.warning(f"Aún no hay registros o conectando a BigQuery... Detalle: {e}")
 
     st.divider()
     st.write("### ⚠️ Zona de Peligro")
     
-    # Botón para limpiar la tabla de SQLite
     if st.button("🗑️ Borrar todos los registros de prueba"):
         try:
-            # Nos conectamos a la base y ejecutamos un comando SQL DELETE
-            with engine.begin() as conn:
-                conn.execute(text("DELETE FROM historial_predicciones"))
+            from google.cloud import bigquery
+            # Nos conectamos con el cliente oficial de BigQuery para ejecutar DML (borrado)
+            client = bigquery.Client(credentials=creds, project=PROJECT_ID)
+            delete_query = f"DELETE FROM `{PROJECT_ID}.{FULL_TABLE_ID}` WHERE true"
+            client.query(delete_query).result() # Esperamos que termine
             
-            st.success("✅ Registros eliminados exitosamente. La base de datos está limpia.")
-            st.rerun() # Refresca la página para que desaparezca la tabla
+            st.success("✅ Registros eliminados de BigQuery exitosamente.")
+            st.rerun()
         except Exception as e:
-            st.error(f"No se pudo borrar la base de datos: {e}")
+            st.error(f"No se pudo vaciar la tabla: {e}")

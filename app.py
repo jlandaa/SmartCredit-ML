@@ -3,7 +3,7 @@ import joblib
 import pandas as pd
 import numpy as np
 # --- NUEVAS LIBRERÍAS ---
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from datetime import datetime
 
 # 1. Configuración de la página y Estilo
@@ -228,8 +228,8 @@ st.sidebar.markdown("---")
 st.sidebar.info("Desarrollado por Juan Manuel Landa\nIngeniero en Computación")
 
 
+# --- PANEL DE ADMINISTRACIÓN ---
 st.sidebar.divider()
-# Creamos un switch en la barra lateral
 if st.sidebar.checkbox("🔧 Ver Base de Datos (Modo Admin)"):
     st.subheader("🗄️ Historial de Evaluaciones Guardadas")
     try:
@@ -249,3 +249,18 @@ if st.sidebar.checkbox("🔧 Ver Base de Datos (Modo Admin)"):
         )
     except ValueError:
         st.warning("La base de datos aún no tiene registros. Realiza una evaluación primero.")
+
+    st.divider()
+    st.write("### ⚠️ Zona de Peligro")
+    
+    # Botón para limpiar la tabla de SQLite
+    if st.button("🗑️ Borrar todos los registros de prueba"):
+        try:
+            # Nos conectamos a la base y ejecutamos un comando SQL DELETE
+            with engine.begin() as conn:
+                conn.execute(text("DELETE FROM historial_predicciones"))
+            
+            st.success("✅ Registros eliminados exitosamente. La base de datos está limpia.")
+            st.rerun() # Refresca la página para que desaparezca la tabla
+        except Exception as e:
+            st.error(f"No se pudo borrar la base de datos: {e}")

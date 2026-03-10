@@ -2,6 +2,9 @@ import streamlit as st
 import joblib
 import pandas as pd
 import numpy as np
+# --- NUEVAS LIBRERÍAS ---
+from sqlalchemy import create_engine
+from datetime import datetime
 
 # 1. Configuración de la página y Estilo
 st.set_page_config(
@@ -9,6 +12,12 @@ st.set_page_config(
     page_icon="🏦",
     layout="centered"
 )
+
+# --- CONFIGURACIÓN DE BASE DE DATOS ---
+# Usamos SQLite para pruebas locales. Crea un archivo .db en tu carpeta.
+DB_URL = "sqlite:///historial_evaluaciones.db" 
+engine = create_engine(DB_URL)
+# --------------------------------------
 
 # 2. Función para cargar el modelo (Cacheada para optimizar rendimiento)
 @st.cache_resource

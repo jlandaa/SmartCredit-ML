@@ -255,12 +255,14 @@ if password_admin == st.secrets["admin_pass"]:
     if st.button("🗑️ Borrar todos los registros de prueba"):
         try:
             from google.cloud import bigquery
-            # Nos conectamos con el cliente oficial de BigQuery para ejecutar DML (borrado)
+            # Nos conectamos con el cliente oficial de BigQuery
             client = bigquery.Client(credentials=creds, project=PROJECT_ID)
-            delete_query = f"DELETE FROM `{PROJECT_ID}.{FULL_TABLE_ID}` WHERE true"
-            client.query(delete_query).result() # Esperamos que termine
             
-            st.success("✅ Registros eliminados de BigQuery exitosamente.")
+            #Como el tier gratuito no permite DML (DELETE), 
+            # eliminamos la tabla completa. Pandas la recreará sola en la próxima predicción.
+            client.delete_table(FULL_TABLE_ID, not_found_ok=True) 
+            
+            st.success("✅ Registros eliminados de BigQuery exitosamente (Tabla reiniciada).")
             st.rerun()
         except Exception as e:
             st.error(f"No se pudo vaciar la tabla: {e}")

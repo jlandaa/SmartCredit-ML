@@ -2,6 +2,9 @@
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://jml-smartcredit-ml.streamlit.app/)
 
+## Dashboard en Looker con 10 casos de prueba cargados desde Big Query
+[https://lookerstudio.google.com/reporting/c48718c7-f0a5-4672-82bf-bdd38e346c76/page/BenrF](https://lookerstudio.google.com/reporting/c48718c7-f0a5-4672-82bf-bdd38e346c76)
+
 ## 📌 Descripción del Proyecto
 SmartCredit-ML es un sistema predictivo de machine learning diseñado para evaluar el riesgo crediticio de solicitantes de préstamos. La aplicación automatiza el proceso de *scoring*, prediciendo la probabilidad de incumplimiento de pago (Default) basándose en el perfil financiero y demográfico del usuario.
 

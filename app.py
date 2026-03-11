@@ -227,8 +227,10 @@ st.sidebar.info("Desarrollado por Juan Manuel Landa\nIngeniero en Computación")
 
 
 # --- PANEL DE ADMINISTRACIÓN ---
-st.sidebar.divider()
-if st.sidebar.checkbox("🔧 Ver Base de Datos (Modo Admin)"):
+password_admin = st.sidebar.text_input("🔑 Contraseña Admin", type="password")
+
+if password_admin == st.secrets["admin_pass"]:
+    st.sidebar.divider()
     st.subheader("☁️ Historial en Google BigQuery")
     try:
         # Leemos la base de datos desde la nube

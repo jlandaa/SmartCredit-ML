@@ -259,7 +259,7 @@ if password_admin == st.secrets["admin_pass"]:
             client = bigquery.Client(credentials=creds, project=PROJECT_ID)
             
             #Como el tier gratuito no permite DML (DELETE), 
-            # eliminamos la tabla completa. Pandas la recreará sola en la próxima predicción.
+            #eliminamos la tabla completa. Pandas la recreará sola en la próxima predicción.
             client.delete_table(FULL_TABLE_ID, not_found_ok=True) 
             
             st.success("✅ Registros eliminados de BigQuery exitosamente (Tabla reiniciada).")

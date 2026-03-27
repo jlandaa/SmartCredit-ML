@@ -26,7 +26,7 @@ El núcleo del sistema es un **Pipeline de Scikit-learn** que garantiza la robus
 ## 🚀 Cómo ejecutarlo localmente
 1. Clona el repositorio:
 ```bash
-git clone [https://github.com/tu-usuario/smartcredit-ml.git](https://github.com/tu-usuario/smartcredit-ml.git)
+git clone https://github.com/jlandaa/SmartCredit-ML
 ```
 2. Instala las dependencias:
 ```bash

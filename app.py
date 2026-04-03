@@ -6,6 +6,16 @@ import json
 from datetime import datetime
 from google.oauth2 import service_account
 
+
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 2rem;
+            padding-bottom: 0rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # 1. Configuración de la página y Estilo
 st.set_page_config(
     page_title="SmartCredit-ML | Scoring de Riesgo",

@@ -6,7 +6,6 @@ import json
 from datetime import datetime
 from google.oauth2 import service_account
 
-
 st.markdown("""
     <style>
         .block-container {

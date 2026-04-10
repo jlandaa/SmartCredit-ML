@@ -176,7 +176,7 @@ if st.button("🚀 Evaluar Solicitud"):
         st.write("### Probabilidad de Mora:")
         st.metric(label="Riesgo Estimado", value=f"{probability:.2%}")
         
-   with col3:
+    with col3:
         st.write("### Impacto Financiero:")
         
         # --- CORRECCIÓN: Extraemos los valores del DataFrame ---

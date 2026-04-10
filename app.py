@@ -145,6 +145,7 @@ df_vista["Motivo del Préstamo"] = df_vista["Motivo del Préstamo"].map(traducci
 st.dataframe(df_vista, hide_index=True)
 
 # 6. Predicción
+# --- 6.1 VALIDACIONES Y ALERTA MLOPS (OOD) ---
 if st.button("🚀 Evaluar Solicitud"):
     
     # --- 1. VALIDACIÓN LÓGICA DE OUTLIERS (Reglas duras) ---
@@ -156,7 +157,7 @@ if st.button("🚀 Evaluar Solicitud"):
         st.stop() 
     # ----------------------------------------
 
-    # --- 1.5 ALERTA MLOPS: OUT-OF-DISTRIBUTION (OOD) ---
+    # --- ALERTA MLOPS: OUT-OF-DISTRIBUTION (OOD) ---
     # Definimos los percentiles 99 aproximados de nuestra base histórica
     umbrales_ood = {
         'ingreso': 150000,      # El 99% gana menos de 150k
@@ -178,7 +179,7 @@ if st.button("🚀 Evaluar Solicitud"):
     if alertas_ood:
         st.warning(f"🛡️ **Alerta de MLOps (Data Drift):** Este perfil tiene características en el 1% superior de nuestra base histórica ({', '.join(alertas_ood)}). El modelo está operando en terreno desconocido y la predicción podría tener un margen de error mayor. Se recomienda revisión manual.")
     # ----------------------------------------
-
+    # --- 6.2 CÁLCULO Y RESULTADOS (XGBOOST) ---
     # Realizar la predicción usando el Pipeline completo
     prediction = model.predict(input_df)
     
@@ -230,7 +231,43 @@ if st.button("🚀 Evaluar Solicitud"):
     else:
         st.info("El solicitante presenta un perfil compatible con las políticas de aprobación.")
 
-    # --- 2. GUARDADO EN BASE DE DATOS (PARA LOOKER) ---
+    # --- 6.3 ASISTENTE NARRATIVO (NLG) ---
+    st.divider()
+    st.write("### 🤖 Asistente Narrativo")
+    
+    def generar_reporte_narrativo(df, prob, valor_esp):
+        # 1. Definir el nivel de riesgo
+        riesgo_str = "Bajo" if prob < 0.2 else "Moderado" if prob < 0.5 else "Alto"
+
+        # 2. Buscar la principal fortaleza (Reglas de negocio)
+        if df['person_emp_length'].iloc[0] >= 5:
+            fortaleza = "su alta estabilidad laboral"
+        elif df['person_income'].iloc[0] > 60000:
+            fortaleza = "su sólido nivel de ingresos"
+        else:
+            fortaleza = "el perfil general de los datos ingresados"
+
+        # 3. Buscar la principal debilidad (Reglas de negocio)
+        if df['loan_percent_income'].iloc[0] > 0.3:
+            alerta = "su alto nivel de endeudamiento en relación a su salario"
+        elif df['loan_int_rate'].iloc[0] > 15:
+            alerta = "la alta tasa de interés pactada para esta operación"
+        else:
+            alerta = "el riesgo estadístico base del segmento"
+
+        # 4. Redacción natural
+        reporte = f"El modelo indica un perfil de riesgo **{riesgo_str}** (Probabilidad de mora: {prob:.1%}). "
+        reporte += f"Su principal fortaleza para la evaluación crediticia es {fortaleza}. "
+        reporte += f"Sin embargo, el factor de mayor precaución detectado es {alerta}, lo que resulta en un impacto financiero esperado de **${valor_esp:,.2f} USD**."
+
+        return reporte
+
+    # Generamos el texto y lo mostramos en una caja azul profesional
+    reporte_texto = generar_reporte_narrativo(input_df, probability, valor_esperado)
+    st.info(f"📝 **Resumen Ejecutivo:** {reporte_texto}")
+    # --------------------------------------------------
+
+    # --- 6.4 GUARDADO EN BASE DE DATOS (BIGQUERY) ---
     nuevo_registro = {
         "fecha_evaluacion": datetime.now(),
         "edad": int(edad_ingresada),
@@ -260,7 +297,7 @@ if st.button("🚀 Evaluar Solicitud"):
         st.info("💡 Modo Simulación activo: El resultado se calculó, pero NO se guardó en la base de datos para no ensuciar las métricas de Looker.")
     # --------------------------------------------------
 
-    # --- EXPLICABILIDAD DEL MODELO (SHAP) ---
+    # --- 6.5 EXPLICABILIDAD DEL MODELO (SHAP) ---
     st.divider()
     
     with st.expander("🔍 Análisis profundo: ¿Por qué se tomó esta decisión? (SHAP)"):

@@ -297,6 +297,10 @@ if st.button("🚀 Evaluar Solicitud"):
         st.info("💡 Modo Simulación activo: El resultado se calculó, pero NO se guardó en la base de datos para no ensuciar las métricas de Looker.")
     # --------------------------------------------------
 
+    # Prueba rápida de ubicación
+    st.write("---")
+    st.success("DEBUG: El código llegó hasta aquí.")
+
     # --- 6.5 EXPLICABILIDAD DEL MODELO (SHAP) ---
     st.divider()
     

@@ -7,3 +7,5 @@ joblib==1.5.3
 SQLAlchemy
 pandas-gbq
 google-cloud-bigquery
+shap
+matplotlib

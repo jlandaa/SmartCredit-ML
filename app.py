@@ -176,13 +176,18 @@ if st.button("🚀 Evaluar Solicitud"):
         st.write("### Probabilidad de Mora:")
         st.metric(label="Riesgo Estimado", value=f"{probability:.2%}")
         
-    with col3:
+   with col3:
         st.write("### Impacto Financiero:")
+        
+        # --- CORRECCIÓN: Extraemos los valores del DataFrame ---
+        monto_prestamo_calc = float(input_df['loan_amnt'].iloc[0])
+        tasa_interes_calc = float(input_df['loan_int_rate'].iloc[0])
+        
         # --- CÁLCULO DE VALOR ESPERADO ---
         # ¿Cuánto ganamos si paga? (Intereses)
-        ganancia_potencial = loan_amount * (loan_int_rate / 100)
+        ganancia_potencial = monto_prestamo_calc * (tasa_interes_calc / 100)
         # ¿Cuánto perdemos si no paga? (Capital prestado)
-        perdida_potencial = loan_amount
+        perdida_potencial = monto_prestamo_calc
         
         # Fórmula: (Probabilidad de Pagar * Ganancia) - (Probabilidad de Mora * Pérdida)
         valor_esperado = ((1 - probability) * ganancia_potencial) - (probability * perdida_potencial)

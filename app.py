@@ -147,13 +147,36 @@ st.dataframe(df_vista, hide_index=True)
 # 6. Predicción
 if st.button("🚀 Evaluar Solicitud"):
     
-    # --- 1. VALIDACIÓN LÓGICA DE OUTLIERS ---
+    # --- 1. VALIDACIÓN LÓGICA DE OUTLIERS (Reglas duras) ---
     edad_ingresada = input_df['person_age'].iloc[0]
     antiguedad_ingresada = input_df['person_emp_length'].iloc[0]
     
     if antiguedad_ingresada > (edad_ingresada - 16):
         st.error(f"⚠️ Error de validación: Es imposible tener {antiguedad_ingresada} años de antigüedad con {edad_ingresada} años de edad. Verifica los datos.")
         st.stop() 
+    # ----------------------------------------
+
+    # --- 1.5 ALERTA MLOPS: OUT-OF-DISTRIBUTION (OOD) ---
+    # Definimos los percentiles 99 aproximados de nuestra base histórica
+    umbrales_ood = {
+        'ingreso': 150000,      # El 99% gana menos de 150k
+        'monto': 25000,         # El 99% pide menos de 25k
+        'tasa': 20.0,           # Rara vez damos tasas mayores al 20%
+        'antiguedad': 20        # Rara vez alguien tiene más de 20 años en el mismo empleo
+    }
+    
+    alertas_ood = []
+    if input_df['person_income'].iloc[0] > umbrales_ood['ingreso']:
+        alertas_ood.append("Ingreso excepcionalmente alto")
+    if input_df['loan_amnt'].iloc[0] > umbrales_ood['monto']:
+        alertas_ood.append("Monto de préstamo inusual")
+    if input_df['loan_int_rate'].iloc[0] > umbrales_ood['tasa']:
+        alertas_ood.append("Tasa de interés extrema")
+    if input_df['person_emp_length'].iloc[0] > umbrales_ood['antiguedad']:
+        alertas_ood.append("Antigüedad laboral atípica")
+        
+    if alertas_ood:
+        st.warning(f"🛡️ **Alerta de MLOps (Data Drift):** Este perfil tiene características en el 1% superior de nuestra base histórica ({', '.join(alertas_ood)}). El modelo está operando en terreno desconocido y la predicción podría tener un margen de error mayor. Se recomienda revisión manual.")
     # ----------------------------------------
 
     # Realizar la predicción usando el Pipeline completo

@@ -56,6 +56,7 @@ probabilidad de incumplimiento de pago (*Default*) de un solicitante.
 st.divider()
 
 # 4. Entradas de datos en la barra lateral
+modo_prueba = st.sidebar.toggle("Modo Simulación", value=True, help="Si está activo, no se guardarán datos en BigQuery")
 st.sidebar.header("📊 Datos del Solicitante")
 
 def get_user_inputs():
@@ -211,19 +212,22 @@ if st.button("🚀 Evaluar Solicitud"):
         "probabilidad_default": probability,
         "decision_final": decision_texto
     }
-    
-    try:
-        # AQUÍ ESTÁ EL CAMBIO: Usamos to_gbq en lugar de to_sql
-        df_log = pd.DataFrame([nuevo_registro])
-        df_log.to_gbq(
-            destination_table=FULL_TABLE_ID, 
-            project_id=PROJECT_ID, 
-            credentials=creds, 
-            if_exists='append'
-        )
-        st.toast('Registro almacenado en BigQuery para análisis en Looker.', icon='☁️')
-    except Exception as e:
-        st.sidebar.error(f"Error al guardar en la nube: {e}")
+    if not modo_prueba: # Solo guardamos si el modo prueba está APAGADO
+        try:
+            # Usamos to_gbq en lugar de to_sql
+            df_log = pd.DataFrame([nuevo_registro])
+            df_log.to_gbq(
+                destination_table=FULL_TABLE_ID, 
+                project_id=PROJECT_ID, 
+                credentials=creds, 
+                if_exists='append'
+            )
+            st.toast('Registro almacenado en BigQuery para análisis en Looker.', icon='☁️')
+        except Exception as e:
+            st.sidebar.error(f"Error al guardar en la nube: {e}")
+    else:
+        # Si el modo prueba está ENCENDIDO, mostramos este cartel en vez de guardar
+        st.info("💡 Modo Simulación activo: El resultado se calculó, pero NO se guardó en la base de datos para no ensuciar las métricas de Looker.")
     # --------------------------------------------------
 
     # EXPLICABILIDAD DEL MODELO ---

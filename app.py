@@ -160,7 +160,7 @@ if st.button("🚀 Evaluar Solicitud"):
 
     st.divider()
     
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         st.write("### Resultado:")
@@ -173,7 +173,24 @@ if st.button("🚀 Evaluar Solicitud"):
 
     with col2:
         st.write("### Probabilidad de Mora:")
-        st.metric(label="Riesgo", value=f"{probability:.2%}")
+        st.metric(label="Riesgo Estimado", value=f"{probability:.2%}")
+        
+    with col3:
+        st.write("### Impacto Financiero:")
+        # --- CÁLCULO DE VALOR ESPERADO ---
+        # ¿Cuánto ganamos si paga? (Intereses)
+        ganancia_potencial = loan_amount * (loan_int_rate / 100)
+        # ¿Cuánto perdemos si no paga? (Capital prestado)
+        perdida_potencial = loan_amount
+        
+        # Fórmula: (Probabilidad de Pagar * Ganancia) - (Probabilidad de Mora * Pérdida)
+        valor_esperado = ((1 - probability) * ganancia_potencial) - (probability * perdida_potencial)
+        
+        # Mostramos la métrica en color verde si es ganancia, o rojo si es pérdida
+        if valor_esperado > 0:
+            st.metric(label="Retorno Estadístico Esperado", value=f"${valor_esperado:,.2f} USD", delta="Rentable")
+        else:
+            st.metric(label="Retorno Estadístico Esperado", value=f"${valor_esperado:,.2f} USD", delta="Pérdida", delta_color="inverse")
         
     st.progress(probability)
     

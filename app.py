@@ -5,6 +5,8 @@ import numpy as np
 import json
 from datetime import datetime
 from google.oauth2 import service_account
+import shap 
+import matplotlib.pyplot as plt 
 
 st.markdown("""
     <style>
@@ -235,26 +237,41 @@ if st.button("🚀 Evaluar Solicitud"):
         st.info("💡 Modo Simulación activo: El resultado se calculó, pero NO se guardó en la base de datos para no ensuciar las métricas de Looker.")
     # --------------------------------------------------
 
-    # EXPLICABILIDAD DEL MODELO ---
+    # --- EXPLICABILIDAD DEL MODELO (SHAP) ---
     st.divider()
     
-    with st.expander("🔍 Ver análisis de decisión del algoritmo"):
-        st.write("¿Qué factores tuvieron más peso para esta predicción?")
+    with st.expander("🔍 Análisis profundo: ¿Por qué se tomó esta decisión? (SHAP)"):
+        st.write("Este gráfico de cascada (Waterfall) desglosa matemáticamente cómo cada dato del solicitante empujó la decisión hacia la aprobación o el rechazo.")
         
+        # 1. Extraemos los componentes del Pipeline
         xgb_model = model.named_steps['classifier']
         preprocessor = model.named_steps['preprocessor']
         
-        importances = xgb_model.feature_importances_
-        feature_names = preprocessor.get_feature_names_out()
+        # 2. Transformamos el dato del usuario tal como lo hace el modelo internamente
+        input_processed = preprocessor.transform(input_df)
         
+        # 3. Limpiamos los nombres de las columnas para que el gráfico sea legible
+        feature_names = preprocessor.get_feature_names_out()
         clean_names = [name.split('__')[-1] for name in feature_names]
         
-        df_importances = pd.DataFrame({'Importancia': importances}, index=clean_names)
+        # 4. Calculamos los valores SHAP (Usamos TreeExplainer, optimizado para XGBoost)
+        explainer = shap.TreeExplainer(xgb_model)
+        shap_values = explainer(input_processed)
         
-        df_top5 = df_importances.sort_values(by='Importancia', ascending=False).head(5)
+        # Le inyectamos los nombres limpios al objeto SHAP
+        shap_values.feature_names = clean_names
         
-        st.bar_chart(df_top5)
-        st.caption("El gráfico muestra las 5 variables más determinantes que el modelo XGBoost evaluó para este solicitante en particular.")
+        # 5. Generamos el gráfico en Matplotlib para pasarlo a Streamlit
+        fig, ax = plt.subplots(figsize=(10, 5))
+        
+        # Usamos shap_values[0] porque estamos evaluando a 1 solo solicitante
+        shap.plots.waterfall(shap_values[0], max_display=7, show=False)
+        
+        # Renderizamos en Streamlit y limpiamos la memoria
+        st.pyplot(fig)
+        plt.clf() 
+        
+        st.caption("🔵 Valores azules: Disminuyen el riesgo de mora. | 🔴 Valores rojos: Aumentan el riesgo de mora.")
 
 # Pie de página profesional
 st.sidebar.markdown("---")

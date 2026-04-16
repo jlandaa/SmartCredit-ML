@@ -26,6 +26,7 @@ Este proyecto implementa prácticas avanzadas de **MLOps** y **Data Engineering*
 
 ## 📊 Dashboard Gerencial
 Las predicciones realizadas por el modelo se centralizan en un tablero de control para el monitoreo de KPIs de riesgo:
+
 👉 [Ver Dashboard en Looker Studio](https://lookerstudio.google.com/reporting/c48718c7-f0a5-4672-82bf-bdd38e346c76/page/BenrF) 
 
 ## 🧠 Arquitectura del Sistema

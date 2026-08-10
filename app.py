@@ -1,6 +1,7 @@
 import streamlit as st
 import joblib
 import pandas as pd
+import pandas_gbq
 import numpy as np
 import json
 from datetime import datetime
@@ -347,7 +348,7 @@ if password_admin == st.secrets["admin_pass"]:
     try:
         # Leemos la base de datos desde la nube
         query = f"SELECT * FROM `{PROJECT_ID}.{FULL_TABLE_ID}` ORDER BY fecha_evaluacion DESC"
-        df_historial = pd.read_gbq(query, project_id=PROJECT_ID, credentials=creds)
+        df_historial = pandas_gbq.read_gbq(query, project_id=PROJECT_ID, credentials=creds)
         
         st.write(f"**Total de evaluaciones registradas:** {len(df_historial)}")
         st.dataframe(df_historial)

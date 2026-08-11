@@ -282,9 +282,10 @@ if st.button("🚀 Evaluar Solicitud"):
     }
     if not modo_prueba: # Solo guardamos si el modo prueba está APAGADO
         try:
-            # Usamos to_gbq en lugar de to_sql
+            # Usamos pandas_gbq.to_gbq de forma explícita
             df_log = pd.DataFrame([nuevo_registro])
-            df_log.to_gbq(
+            pandas_gbq.to_gbq(
+                df_log,
                 destination_table=FULL_TABLE_ID, 
                 project_id=PROJECT_ID, 
                 credentials=creds, 
